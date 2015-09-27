@@ -60,9 +60,9 @@ def read_all():
   frames = []
 
   import os
-  for file in os.listdir("."):
+  for file in os.listdir("./KML/"):
     if file.endswith(".kml"):
-      frame = read_file(file)
+      frame = read_file("./KML/" + file)
       frames.append(frame)
   print len(frames)
   print frames[0]
