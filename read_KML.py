@@ -1,6 +1,7 @@
 from lxml import objectify
 from pandas import DataFrame, Series
 import pandas as pd
+from datetime import datetime
 
 def read_file(filepath):
   parse_file = objectify.parse(open(filepath))
@@ -29,8 +30,7 @@ def read_file(filepath):
   gx = placemarks[2].getchildren()[2]
 
   #lists to hold flight path information, to be put into dataframe
-  when_date = []
-  when_time = []
+  datetime_list = []
   coord_longitude = []
   coord_latitude = []
   coord_altitude = []
@@ -41,17 +41,19 @@ def read_file(filepath):
     if tagname in ("extrude","tessellate","altitudeMode"):
       continue
     if tagname == "when":
-      when_date.append(child.text.rpartition('T')[0])
-      when_time.append(child.text.rpartition('T')[2])
+      #when_date.append(child.text.rpartition('T')[0])
+      #when_time.append(child.text.rpartition('T')[2])
+      dt = datetime.strptime(child.text, '%Y-%m-%dT%H:%M:%S')
+      datetime_list.append(dt)
     elif tagname == "coord":
       data = child.text.split()
-      coord_longitude.append(data[0])
-      coord_latitude.append(data[1])
-      coord_altitude.append(data[2])
+      coord_longitude.append(float(data[0]))
+      coord_latitude.append(float(data[1]))
+      coord_altitude.append(float(data[2]))
 
   #put data into dataframe
-  data = {'date': when_date, 'time': when_time, 'longitude': coord_longitude, 'latitude': coord_latitude, 'altitude': coord_altitude}
-  frame = DataFrame(data, columns=['date', 'time', 'longitude', 'latitude', 'altitude'])
+  data = {'datetime': datetime_list, 'longitude': coord_longitude, 'latitude': coord_latitude, 'altitude': coord_altitude}
+  frame = DataFrame(data, columns=['datetime', 'longitude', 'latitude', 'altitude'])
   
   ###print frame
   return frame
@@ -64,8 +66,20 @@ def read_all():
     if file.endswith(".kml"):
       frame = read_file("./KML/" + file)
       frames.append(frame)
+
+  #test
   print len(frames)
-  print frames[0]
+  f = frames[0]
+  print f
+  print f["longitude"]
+  print f.ix[1]
+
+  d = f["datetime"][1]
+  print d
+  print type(d)
+  print d.hour
+  print d.year
+
 
 if __name__ == '__main__':
   read_all()
